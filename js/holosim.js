@@ -38,150 +38,150 @@ var holoAspect = holoFOV[0] / holoFOV[1];
 init();
 
 function init() {
-	scene = new THREE.Scene();
-	holoScene = new THREE.Scene();
+  scene = new THREE.Scene();
+  holoScene = new THREE.Scene();
 
-	// vertical FOV, aspect
-	camera = new THREE.PerspectiveCamera( FOV, window.innerWidth/window.innerHeight, 0.1, 1000 );
-	holoCamera = new THREE.PerspectiveCamera( holoFOV[1], holoAspect, 0.1, 1000 );
+  // vertical FOV, aspect
+  camera = new THREE.PerspectiveCamera( FOV, window.innerWidth/window.innerHeight, 0.1, 1000 );
+  holoCamera = new THREE.PerspectiveCamera( holoFOV[1], holoAspect, 0.1, 1000 );
 
-	renderer = new THREE.WebGLRenderer({
-		antialias: true
-	});
-	renderer.autoClear = false;
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  renderer.autoClear = false;
 
-	renderWidth = window.innerWidth;
-	renderHeight = window.innerHeight;
+  renderWidth = window.innerWidth;
+  renderHeight = window.innerHeight;
 
-	renderer.setSize( renderWidth, renderHeight );
-	document.body.appendChild( renderer.domElement );
+  renderer.setSize( renderWidth, renderHeight );
+  document.body.appendChild( renderer.domElement );
 
-	addLights(scene);
-	addLights(holoScene);
+  addLights(scene);
+  addLights(holoScene);
 
-	setupWorld();
-	setupHoloWorld();
+  setupWorld();
+  setupHoloWorld();
 
-	setupControls();
+  setupControls();
 
-	animate();
+  animate();
 }
 
 function randRange(min, max) {
-	return Math.random() * (max - min) + min;
+  return Math.random() * (max - min) + min;
 }
 
 function addLights(scene) {
-	var light = new THREE.DirectionalLight(0xffffff, 1.5);
-	light.position.set(1, 1, 1);
-	scene.add(light);
+  var light = new THREE.DirectionalLight(0xffffff, 1.5);
+  light.position.set(1, 1, 1);
+  scene.add(light);
 
-	light = new THREE.DirectionalLight(0xffffff, 0.75);
-	light.position.set(-1, - 0.5, - 1);
-	scene.add(light);
+  light = new THREE.DirectionalLight(0xffffff, 0.75);
+  light.position.set(-1, - 0.5, - 1);
+  scene.add(light);
 
-	light = new THREE.AmbientLight(0x666666);
-	scene.add(light);
+  light = new THREE.AmbientLight(0x666666);
+  scene.add(light);
 }
 
 function setupWorld() {
-	var geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
-	var material = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
+  var geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
+  var material = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
 
-	var r = 3;
+  var r = 3;
 
-	for (var i = 0; i < 200; i++) {
-		cube = new THREE.Mesh( geometry, material );
+  for (var i = 0; i < 200; i++) {
+    cube = new THREE.Mesh( geometry, material );
 
-		cube.position.set( randRange(-r, r), randRange(-r, r), randRange(-r, r) );
+    cube.position.set( randRange(-r, r), randRange(-r, r), randRange(-r, r) );
 
-		scene.add( cube );
-	}
+    scene.add( cube );
+  }
 }
 
 function setupHoloWorld() {
-	var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-	var material = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
+  var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+  var material = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
 
-	holoCube = new THREE.Mesh( geometry, material );
-	//holoScene.add( holoCube );
+  holoCube = new THREE.Mesh( geometry, material );
+  //holoScene.add( holoCube );
 
-	holoCube.position.set(0,0,-1);
+  holoCube.position.set(0,0,-1);
 
-	var r = 2;
-	var geo = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
-	for (var i = 0; i < 200; i++) {
-		var mat = new THREE.MeshLambertMaterial( { color: 0xff3399 } );
-			//{ color: Math.random() * 0xffffff } );
-		var cube = new THREE.Mesh( geo, mat );
+  var r = 2;
+  var geo = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
+  for (var i = 0; i < 200; i++) {
+    var mat = new THREE.MeshLambertMaterial( { color: 0xff3399 } );
+      //{ color: Math.random() * 0xffffff } );
+    var cube = new THREE.Mesh( geo, mat );
 
-		cube.position.set( randRange(-r, r), randRange(-r, r), randRange(-r, r) );
+    cube.position.set( randRange(-r, r), randRange(-r, r), randRange(-r, r) );
 
-		holoScene.add( cube );
-	}
+    holoScene.add( cube );
+  }
 }
 
 var holoControls;
 function setupControls() {
-	mouseControls = new THREE.MouseControls(camera);
-	holoControls = new THREE.MouseControls(holoCamera);
+  mouseControls = new THREE.MouseControls(camera);
+  holoControls = new THREE.MouseControls(holoCamera);
 }
 
 function animate() {
-	requestAnimationFrame( animate );
+  requestAnimationFrame( animate );
 
-	var dt = clock.getDelta();
+  var dt = clock.getDelta();
 
-	update( dt );
-	render( dt );
+  update( dt );
+  render( dt );
 }
 
 function update(dt) {
-	mouseControls.update(dt);
-	holoControls.update(dt);
+  mouseControls.update(dt);
+  holoControls.update(dt);
 }
 
 function render(dt) {
-	renderer.clear();
+  renderer.clear();
 
-	renderer.render(scene, camera);
+  renderer.render(scene, camera);
 
-	if (renderHolograms) {
-		renderHolo();
+  if (renderHolograms) {
+    renderHolo();
 
-		// reset
-		renderer.setViewport( 0, 0, renderWidth, renderHeight );
-		renderer.setScissor( 0, 0, renderWidth, renderHeight );
-		renderer.enableScissorTest( false );
-	}
+    // reset
+    renderer.setViewport( 0, 0, renderWidth, renderHeight );
+    renderer.setScissor( 0, 0, renderWidth, renderHeight );
+    renderer.enableScissorTest( false );
+  }
 }
 
 // TODO: calc FOV
 // HoloLens estimate: 30deg x 17.5deg
 function renderHolo() {
-	// couldn't this work for unity vrbrowser webvr rendering?
-	// --demostrate how
+  // couldn't this work for unity vrbrowser webvr rendering?
+  // --demostrate how
 
-	var H = renderHeight;
-	var W = renderWidth;
+  var H = renderHeight;
+  var W = renderWidth;
 
-	var hFOV = FOV * renderWidth/renderHeight;
+  var hFOV = FOV * renderWidth/renderHeight;
 
-	// TODO: calculate crop based on FOV
-	var x,y,w,h;
-	w = holoFOV[0] / hFOV;
-	h = holoFOV[1] /  FOV; // 17.5 / 70
-	console.log(w, h);
+  // TODO: calculate crop based on FOV
+  var x,y,w,h;
+  w = holoFOV[0] / hFOV;
+  h = holoFOV[1] /  FOV; // 17.5 / 70
+  console.log(w, h);
         x = 0.5 - w/2;
-	y = 0.5 - h/2;
+  y = 0.5 - h/2;
 
-	crop( W*x, H*y, W*w, H*h );
+  crop( W*x, H*y, W*w, H*h );
 
-	renderer.render( holoScene, camera );
+  renderer.render( holoScene, camera );
 }
 
 function crop( x, y, w, h ) {
-	//renderer.setViewport( x, y, w, h );
-	renderer.setScissor( x, y, w, h );
-	renderer.enableScissorTest( true );
+  //renderer.setViewport( x, y, w, h );
+  renderer.setScissor( x, y, w, h );
+  renderer.enableScissorTest( true );
 }
