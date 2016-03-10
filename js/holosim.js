@@ -2,11 +2,20 @@
 
 // HOLOSIM
 
+/*
+TODO:
+-get FOV and aspect right
+-ui toggles for
+-webvr 1.0 support (via boilerplate, etc.)
+-better scene for viewing
+-push out
+*/
+
 var clock = new THREE.Clock();
 
 var renderer;
+var camera, holoCamera;
 
-var camera;
 var scene, holoScene;
 
 var cube, holoCube;
@@ -16,7 +25,15 @@ var mouseControls;
 
 var renderWidth, renderHeight;
 
+
 var renderHolograms = true;
+
+var FOV = 70;
+
+var holoFOV = [30, 17.5]; // based off estimates
+var holoAspect = holoFOV[0] / holoFOV[1];
+
+
 
 init();
 
@@ -24,7 +41,9 @@ function init() {
 	scene = new THREE.Scene();
 	holoScene = new THREE.Scene();
 
-	camera = new THREE.PerspectiveCamera( 70, window.innerWidth/window.innerHeight, 0.1, 1000 );
+	// vertical FOV, aspect
+	camera = new THREE.PerspectiveCamera( FOV, window.innerWidth/window.innerHeight, 0.1, 1000 );
+	holoCamera = new THREE.PerspectiveCamera( holoFOV[1], holoAspect, 0.1, 1000 );
 
 	renderer = new THREE.WebGLRenderer({
 		antialias: true
@@ -102,8 +121,10 @@ function setupHoloWorld() {
 	}
 }
 
+var holoControls;
 function setupControls() {
 	mouseControls = new THREE.MouseControls(camera);
+	holoControls = new THREE.MouseControls(holoCamera);
 }
 
 function animate() {
@@ -117,6 +138,7 @@ function animate() {
 
 function update(dt) {
 	mouseControls.update(dt);
+	holoControls.update(dt);
 }
 
 function render(dt) {
@@ -136,15 +158,30 @@ function render(dt) {
 
 // TODO: calc FOV
 // HoloLens estimate: 30deg x 17.5deg
-// Max theoretical with current display tech: ~47deg
-function renderHolo(hFOV, vHOV) {
-	crop( renderWidth*0.25,renderHeight*0.25, renderWidth*0.5, renderHeight*0.5 );
+function renderHolo() {
+	// couldn't this work for unity vrbrowser webvr rendering?
+	// --demostrate how
 
-	renderer.render(holoScene, camera);
+	var H = renderHeight;
+	var W = renderWidth;
+
+	var hFOV = FOV * renderWidth/renderHeight;
+
+	// TODO: calculate crop based on FOV
+	var x,y,w,h;
+	w = holoFOV[0] / hFOV;
+	h = holoFOV[1] /  FOV; // 17.5 / 70
+	console.log(w, h);
+        x = 0.5 - w/2;
+	y = 0.5 - h/2;
+
+	crop( W*x, H*y, W*w, H*h );
+
+	renderer.render( holoScene, camera );
 }
 
 function crop( x, y, w, h ) {
-	renderer.setViewport( x, y, w, h );
+	//renderer.setViewport( x, y, w, h );
 	renderer.setScissor( x, y, w, h );
 	renderer.enableScissorTest( true );
 }
