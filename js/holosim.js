@@ -30,9 +30,11 @@ var renderHolograms = true;
 
 var FOV = 70;
 
+
 var holoFOV = [30, 17.5]; // based off estimates
 var holoAspect = holoFOV[0] / holoFOV[1];
 
+var targetFOV = holoFOV;
 
 
 init();
@@ -131,18 +133,18 @@ function setupControls() {
     console.log('keydown', event.keyCode);
     switch ( event.keyCode ) {
       case 74: /*J*/
-        holoFOV = scaleFOV(holoFOV, -1);
+        targetFOV = scaleFOV(targetFOV, -1);
         break;
       case 75: /*K*/
-        holoFOV = scaleFOV(holoFOV, 1);
+        targetFOV = scaleFOV(targetFOV, 1);
         break;
     }
   }, false);
 }
 
-function scaleFOV(fov, direction) {
+function scaleFOV(fov, direction, percentage) {
   var FOV = [];
-  var factor = 1.1;
+  var factor = (percentage !== undefined) ? 1+(percentage/100) : 1+0.1;
   factor = (direction == 1) ? factor : 1/factor;
   FOV = [ fov[0]*factor, fov[1]*factor ];
   console.log('scaleFOV: ' + FOV);
@@ -161,6 +163,16 @@ function animate(t) {
 function update(dt) {
   mouseControls.update(dt);
   holoControls.update(dt);
+
+  // update FOV
+  var dH = targetFOV[0] - holoFOV[0];
+  var dV = targetFOV[1] - holoFOV[1];
+
+  var rate = 5;
+  var hFOV = holoFOV[0] + dH*rate*dt;
+  var vFOV = holoFOV[1] + dV*rate*dt;
+
+  holoFOV = [hFOV, vFOV];
 }
 
 function render(dt) {
