@@ -125,9 +125,31 @@ var holoControls;
 function setupControls() {
   mouseControls = new THREE.MouseControls(camera);
   holoControls = new THREE.MouseControls(holoCamera);
+
+  window.addEventListener('keydown', function(ev){
+    var X = 1.1;
+    console.log('keydown', event.keyCode);
+    switch ( event.keyCode ) {
+      case 74: /*J*/
+        holoFOV = scaleFOV(holoFOV, -1);
+        break;
+      case 75: /*K*/
+        holoFOV = scaleFOV(holoFOV, 1);
+        break;
+    }
+  }, false);
 }
 
-function animate() {
+function scaleFOV(fov, direction) {
+  var FOV = [];
+  var factor = 1.1;
+  factor = (direction == 1) ? factor : 1/factor;
+  FOV = [ fov[0]*factor, fov[1]*factor ];
+  console.log('scaleFOV: ' + FOV);
+  return FOV;
+}
+
+function animate(t) {
   requestAnimationFrame( animate );
 
   var dt = clock.getDelta();
@@ -152,27 +174,20 @@ function render(dt) {
     // reset
     renderer.setViewport( 0, 0, renderWidth, renderHeight );
     renderer.setScissor( 0, 0, renderWidth, renderHeight );
-    renderer.enableScissorTest( false );
+    renderer.setScissorTest( false );
   }
 }
 
-// TODO: calc FOV
-// HoloLens estimate: 30deg x 17.5deg
 function renderHolo() {
-  // couldn't this work for unity vrbrowser webvr rendering?
-  // --demostrate how
-
   var H = renderHeight;
   var W = renderWidth;
 
   var hFOV = FOV * renderWidth/renderHeight;
 
-  // TODO: calculate crop based on FOV
   var x,y,w,h;
   w = holoFOV[0] / hFOV;
-  h = holoFOV[1] /  FOV; // 17.5 / 70
-  console.log(w, h);
-        x = 0.5 - w/2;
+  h = holoFOV[1] /  FOV;
+  x = 0.5 - w/2;
   y = 0.5 - h/2;
 
   crop( W*x, H*y, W*w, H*h );
@@ -183,5 +198,5 @@ function renderHolo() {
 function crop( x, y, w, h ) {
   //renderer.setViewport( x, y, w, h );
   renderer.setScissor( x, y, w, h );
-  renderer.enableScissorTest( true );
+  renderer.setScissorTest( true );
 }
