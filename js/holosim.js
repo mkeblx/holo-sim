@@ -29,9 +29,9 @@ var renderWidth, renderHeight;
 var renderHolograms = true;
 
 var FOV = 70;
+var hololensFOV = [30, 17.5]; // based off estimates
 
-
-var holoFOV = [30, 17.5]; // based off estimates
+var holoFOV = hololensFOV;
 var holoAspect = holoFOV[0] / holoFOV[1];
 
 var targetFOV = holoFOV;
@@ -137,6 +137,18 @@ function setupControls() {
         break;
       case 75: /*K*/
         targetFOV = scaleFOV(targetFOV, 1);
+        break;
+      case 70: /*F*/
+        break;
+      case 71: /*G*/
+        var hFOV = FOV * renderWidth/renderHeight;
+        targetFOV = [hFOV, FOV];
+        break;
+      case 72: /*H*/
+        targetFOV = hololensFOV;
+        break;
+      case 82: /*R*/
+
         break;
     }
   }, false);
