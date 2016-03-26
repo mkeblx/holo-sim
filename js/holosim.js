@@ -99,28 +99,37 @@ function setupWorld() {
 
     scene.add( cube );
   }
+
 }
 
 function setupHoloWorld() {
-  var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-  var material = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
-
-  holoCube = new THREE.Mesh( geometry, material );
-  //holoScene.add( holoCube );
-
-  holoCube.position.set(0,0,-1);
+  var geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
+  var material = new THREE.MeshLambertMaterial( { color: 0xff3399 } );
 
   var r = 2;
-  var geo = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
   for (var i = 0; i < 200; i++) {
-    var mat = new THREE.MeshLambertMaterial( { color: 0xff3399 } );
-      //{ color: Math.random() * 0xffffff } );
-    var cube = new THREE.Mesh( geo, mat );
+    var cube = new THREE.Mesh( geometry, material );
 
     cube.position.set( randRange(-r, r), randRange(-r, r), randRange(-r, r) );
 
     holoScene.add( cube );
   }
+
+  // skeleton model
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.setBaseUrl( 'models/' );
+  mtlLoader.setPath( 'models/' );
+  mtlLoader.load( 'skeleton.mtl', function( materials ) {
+    materials.preload();
+    var objLoader = new THREE.OBJLoader();
+    objLoader.setMaterials( materials );
+    objLoader.setPath( 'models/' );
+    objLoader.load( 'skeleton.obj', function ( object ) {
+      object.position.z = - 95;
+      holoScene.add( object );
+    }, function(){ }, function(err){ console.log(err); } );
+  });
+
 }
 
 var holoControls;
