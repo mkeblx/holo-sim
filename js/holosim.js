@@ -87,6 +87,17 @@ function addLights(scene) {
 }
 
 function setupWorld() {
+  // floor
+  var height = 2;
+  var map = new THREE.TextureLoader().load('textures/checker.png');
+  var geo = new THREE.PlaneGeometry(8,8, 4,4);
+  geo.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
+
+  var mat = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide } );
+  var object = new THREE.Mesh( geo, mat );
+  object.position.set( 0, -height, 0 );
+  scene.add( object );
+
   var geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
   var material = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
 
@@ -125,7 +136,10 @@ function setupHoloWorld() {
     objLoader.setMaterials( materials );
     objLoader.setPath( 'models/' );
     objLoader.load( 'skeleton.obj', function ( object ) {
-      object.position.z = - 95;
+      var s = 0.012;
+      object.scale.set( s,s,s );
+      object.position.y = -1.845;
+      object.position.z = -1;
       holoScene.add( object );
     }, function(){ }, function(err){ console.log(err); } );
   });
