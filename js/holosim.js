@@ -48,6 +48,7 @@ function init() {
   holoCamera = new THREE.PerspectiveCamera( holoFOV[1], holoAspect, 0.1, 1000 );
 
   renderer = new THREE.WebGLRenderer({
+    canvas: document.getElementById('canvas'),
     antialias: true
   });
   renderer.autoClear = false;
@@ -56,7 +57,6 @@ function init() {
   renderHeight = window.innerHeight;
 
   renderer.setSize( renderWidth, renderHeight );
-  document.body.appendChild( renderer.domElement );
 
   addLights(scene);
   addLights(holoScene);
@@ -164,12 +164,12 @@ function scaleFOV(fov, direction, percentage) {
 }
 
 function animate(t) {
-  requestAnimationFrame( animate );
+  requestAnimationFrame(animate);
 
   var dt = clock.getDelta();
 
-  update( dt );
-  render( dt );
+  update(dt);
+  render(dt);
 }
 
 function update(dt) {

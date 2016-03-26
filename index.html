@@ -4,20 +4,19 @@
 <meta charset="utf-8">
 <title>hololens simulator</title>
 <style>
-canvas {
-  box-sizing: border-box;
+#canvas {
+  position: absolute;
   width: 100%;
   height: 100%;
   left: 0;
   top: 0;
   margin: 0;
-  padding: 0;
-  position: absolute;
 }
 </style>
 </head>
 <body>
-<div id="canvas"></div>
+<canvas id="canvas"></canvas>
+
 <script src="js/libs/three.min.js"></script>
 <script src="js/libs/Tween.js"></script>
 <script src="js/MouseControls.js"></script>
