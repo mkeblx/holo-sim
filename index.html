@@ -2,7 +2,8 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>hololens simulator</title>
+<title>holo-sim</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,500">
 <style>
 #canvas {
   position: absolute;
@@ -12,10 +13,54 @@
   top: 0;
   margin: 0;
 }
+
+#menu {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 200px;
+  background-color: white;
+  outline: 1px solid black;
+
+  font-family: 'Roboto', sans-serif;
+  padding: 5px;
+}
+
+#menu h1 {
+  margin: 0px;
+  margin-bottom: 8px;
+  font-weight: 300;
+  font-size: 26px;
+}
+
+.btn {
+  padding: 4px;
+  border: 1px solid black;
+  background-color: black;
+  margin-bottom: 5px;
+  color: #fff;
+}
+
+.btn:hover {
+  cursor: pointer;
+  background-color: #333;
+}
 </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
+<div id="menu">
+  <h1>holo-sim</h1>
+
+  <h3>Set FOV</h3>
+  <div class="btn" id="holo-btn">HoloLens - H</div>
+  <div class="btn" id="full-btn">Full - G</div>
+  <div class="btn" id="inc-btn">+10% - K</div>
+  <div class="btn" id="dec-btn">-10% - J</div>
+
+  <h3>Current FOV</h3>
+  <span id="current-fov"></span>
+</div>
 
 <script src="js/libs/three.min.js"></script>
 <script src="js/libs/OBJLoader.js"></script>
@@ -23,5 +68,6 @@
 <script src="js/libs/Tween.js"></script>
 <script src="js/MouseControls.js"></script>
 <script src="js/holosim.js"></script>
+
 </body>
 </html>

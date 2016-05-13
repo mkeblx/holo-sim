@@ -5,9 +5,11 @@
 /*
 TODO:
 -get FOV and aspect right
--ui toggles for
--webvr 1.0 support (via boilerplate, etc.)
+-UI controls
+--input specific FOV
+-WebVR 1.0 support (via polyfill, etc.)
 -better scene for viewing
+-resize handler
 -push out
 */
 
@@ -34,7 +36,8 @@ var hololensFOV = [30, 17.5]; // based off estimates
 var holoFOV = hololensFOV;
 var holoAspect = holoFOV[0] / holoFOV[1];
 
-var targetFOV = holoFOV;
+var targetFOV;
+setTargetFOV(holoFOV);
 
 
 init();
@@ -65,6 +68,8 @@ function init() {
   setupHoloWorld();
 
   setupControls();
+
+  setupUI();
 
   animate();
 }
@@ -146,29 +151,27 @@ function setupHoloWorld() {
 
 }
 
-var holoControls;
 function setupControls() {
   mouseControls = new THREE.MouseControls(camera);
-  holoControls = new THREE.MouseControls(holoCamera);
 
   window.addEventListener('keydown', function(ev){
     var X = 1.1;
     console.log('keydown', event.keyCode);
     switch ( event.keyCode ) {
       case 74: /*J*/
-        targetFOV = scaleFOV(targetFOV, -1);
+        setTargetFOV(scaleFOV(targetFOV, -1));
         break;
       case 75: /*K*/
-        targetFOV = scaleFOV(targetFOV, 1);
+        setTargetFOV(scaleFOV(targetFOV, 1));
         break;
       case 70: /*F*/
         break;
       case 71: /*G*/
         var hFOV = FOV * renderWidth/renderHeight;
-        targetFOV = [hFOV, FOV];
+        setTargetFOV([hFOV, FOV]);
         break;
       case 72: /*H*/
-        targetFOV = hololensFOV;
+        setTargetFOV(hololensFOV);
         break;
       case 82: /*R*/
 
@@ -177,13 +180,45 @@ function setupControls() {
   }, false);
 }
 
+function setupUI() {
+  var holoBtn = document.getElementById('holo-btn');
+  var fullBtn = document.getElementById('full-btn');
+  var incBtn = document.getElementById('inc-btn');
+  var decBtn = document.getElementById('dec-btn');
+
+  holoBtn.addEventListener('click', function(){
+    setTargetFOV(hololensFOV);
+  }, false);
+  fullBtn.addEventListener('click', function(){
+    var hFOV = FOV * renderWidth/renderHeight;
+    setTargetFOV([hFOV, FOV]);
+  }, false);
+  incBtn.addEventListener('click', function(){
+    setTargetFOV(scaleFOV(targetFOV, 1));
+  }, false);
+  decBtn.addEventListener('click', function(){
+    setTargetFOV(scaleFOV(targetFOV, -1));
+  }, false);
+
+}
+
+function setTargetFOV(tFOV) {
+  if (tFOV[1] > FOV) {
+    tFOV = [FOV * renderWidth/renderHeight, FOV];
+  }
+
+  targetFOV = tFOV;
+  var fovStr = targetFOV[0].toFixed(1) + '° × ' + targetFOV[1].toFixed(1) + '°';
+  document.getElementById('current-fov').innerHTML = fovStr;
+}
+
 function scaleFOV(fov, direction, percentage) {
-  var FOV = [];
+  var _FOV = [];
   var factor = (percentage !== undefined) ? 1+(percentage/100) : 1+0.1;
   factor = (direction == 1) ? factor : 1/factor;
-  FOV = [ fov[0]*factor, fov[1]*factor ];
-  console.log('scaleFOV: ' + FOV);
-  return FOV;
+  _FOV = [ fov[0]*factor, fov[1]*factor ];
+  console.log('scaleFOV: ' + _FOV);
+  return _FOV;
 }
 
 function animate(t) {
@@ -197,9 +232,11 @@ function animate(t) {
 
 function update(dt) {
   mouseControls.update(dt);
-  holoControls.update(dt);
 
-  // update FOV
+  updateFOV(dt);
+}
+
+function updateFOV(dt) {
   var dH = targetFOV[0] - holoFOV[0];
   var dV = targetFOV[1] - holoFOV[1];
 
