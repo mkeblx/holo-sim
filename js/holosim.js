@@ -94,9 +94,25 @@ function addLights(scene) {
 function setupWorld() {
   // floor
   var height = 2;
-  var map = new THREE.TextureLoader().load('textures/checker.png');
-  var geo = new THREE.PlaneGeometry(8,8, 4,4);
+  var map = new THREE.TextureLoader().load('textures/hardwood2_diffuse.jpg');
+  map.wrapS = THREE.RepeatWrapping;
+  map.wrapT = THREE.RepeatWrapping;
+  map.anisotropy = 4;
+  map.repeat.set( 6, 12 );
+  var geo = new THREE.PlaneGeometry(20,20, 4,4);
   geo.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
+
+  // wall
+  var wallGeo = new THREE.PlaneGeometry(20, 5);
+  var wallMap = new THREE.TextureLoader().load('textures/brick_diffuse.jpg');
+  var mat = new THREE.MeshLambertMaterial({ map: wallMap });
+  wallMap.wrapS = THREE.RepeatWrapping;
+  wallMap.wrapT = THREE.RepeatWrapping;
+  wallMap.anisotropy = 4;
+  wallMap.repeat.set( 3, 1 );
+  var wall = new THREE.Mesh( wallGeo, mat );
+  wall.position.set( 0, 0, -5 );
+  scene.add( wall );
 
   var mat = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide } );
   var object = new THREE.Mesh( geo, mat );
