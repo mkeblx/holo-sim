@@ -39,8 +39,21 @@ var holoAspect = holoFOV[0] / holoFOV[1];
 var targetFOV;
 setTargetFOV(holoFOV);
 
+var holoPlane;
+var holoTexture;
 
 init();
+
+/*
+TODO:
+-set right distance
+-put in player
+
+-update correctly
+---set distance
+---change FOV of holoCamera
+---
+*/
 
 function init() {
   scene = new THREE.Scene();
@@ -48,7 +61,23 @@ function init() {
 
   // vertical FOV, aspect
   camera = new THREE.PerspectiveCamera( FOV, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
   holoCamera = new THREE.PerspectiveCamera( holoFOV[1], holoAspect, 0.1, 1000 );
+
+  // ^
+  var holoResolution = 512;
+  holoTexture = new THREE.WebGLRenderTarget( holoResolution, holoResolution*holoAspect,
+    { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat } );
+
+  var planeGeo = new THREE.PlaneGeometry(1,1*1/holoAspect);
+  var planeMat = new THREE.MeshBasicMaterial({
+    map: holoTexture.texture,
+    transparent: true
+  });
+  holoPlane = new THREE.Mesh(planeGeo, planeMat);
+  holoPlane.position.set(0, 0, -0.5); // todo: set right distance
+  scene.add( holoPlane );
+  // ^
 
   renderer = new THREE.WebGLRenderer({
     canvas: document.getElementById('canvas'),
@@ -112,7 +141,7 @@ function setupWorld() {
   wallMap.repeat.set( 3, 1 );
   var wall = new THREE.Mesh( wallGeo, mat );
   wall.position.set( 0, 0, -5 );
-  scene.add( wall );
+  //scene.add( wall );
 
   var mat = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide } );
   var object = new THREE.Mesh( geo, mat );
@@ -266,16 +295,21 @@ function updateFOV(dt) {
 function render(dt) {
   renderer.clear();
 
+  //
+  renderer.clearTarget(holoTexture);
+  renderer.render(holoScene, camera, holoTexture);
+
+
   renderer.render(scene, camera);
 
-  if (renderHolograms) {
+  /*if (renderHolograms) {
     renderHolo();
 
     // reset
     renderer.setViewport( 0, 0, renderWidth, renderHeight );
     renderer.setScissor( 0, 0, renderWidth, renderHeight );
     renderer.setScissorTest( false );
-  }
+  }*/
 }
 
 function renderHolo() {
