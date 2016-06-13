@@ -15,14 +15,16 @@ TODO:
 
 var clock = new THREE.Clock();
 
-var renderer;
+var renderer, effect;
 var camera, holoCamera;
 
 var scene, holoScene;
 
+var dolly, holoDolly;
+
 var cube, holoCube;
 
-var controls;
+var controls, holoControls;
 var mouseControls;
 
 var renderWidth, renderHeight;
@@ -41,6 +43,7 @@ setTargetFOV(holoFOV);
 
 var holoPlane;
 var holoTexture;
+
 
 init();
 
@@ -64,37 +67,46 @@ function init() {
 
   holoCamera = new THREE.PerspectiveCamera( holoFOV[1], holoAspect, 0.1, 1000 );
 
-  // ^
-  var holoResolution = 512;
-  holoTexture = new THREE.WebGLRenderTarget( holoResolution, holoResolution*holoAspect,
-    { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat } );
+  dolly = new THREE.Object3D();
+  dolly.add( camera );
+  scene.add( dolly );
 
-  var planeGeo = new THREE.PlaneGeometry(1,1*1/holoAspect);
-  var planeMat = new THREE.MeshBasicMaterial({
-    map: holoTexture.texture,
-    transparent: true
-  });
-  holoPlane = new THREE.Mesh(planeGeo, planeMat);
-  holoPlane.position.set(0, 0, -0.5); // todo: set right distance
-  scene.add( holoPlane );
-  // ^
+  holoDolly = new THREE.Object3D();
+  holoDolly.add( holoCamera );
+  holoScene.add( holoDolly );
 
   renderer = new THREE.WebGLRenderer({
-    canvas: document.getElementById('canvas'),
     antialias: true
   });
   renderer.autoClear = false;
+  var container = document.body;
+  container.appendChild( renderer.domElement );
 
   renderWidth = window.innerWidth;
   renderHeight = window.innerHeight;
 
   renderer.setSize( renderWidth, renderHeight );
 
+  effect = new THREE.VREffect( renderer );
+
+  var enterBtn = document.getElementById('enter-btn');
+  enterBtn.addEventListener('click', function(ev){
+    console.log(effect);
+    effect.setFullScreen( true );
+  }, false);
+
+
+  controls = new THREE.VRControls( dolly );
+  //holoControls = new THREE.VRControls( holoDolly );
+
+  setupHoloRendering();
+
   addLights(scene);
   addLights(holoScene);
 
   setupWorld();
   setupHoloWorld();
+
 
   setupControls();
 
@@ -131,6 +143,11 @@ function setupWorld() {
   var geo = new THREE.PlaneGeometry(20,20, 4,4);
   geo.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
 
+  var mat = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide } );
+  var object = new THREE.Mesh( geo, mat );
+  object.position.set( 0, -height, 0 );
+  scene.add( object );
+
   // wall
   var wallGeo = new THREE.PlaneGeometry(20, 5);
   var wallMap = new THREE.TextureLoader().load('textures/brick_diffuse.jpg');
@@ -143,11 +160,7 @@ function setupWorld() {
   wall.position.set( 0, 0, -5 );
   //scene.add( wall );
 
-  var mat = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide } );
-  var object = new THREE.Mesh( geo, mat );
-  object.position.set( 0, -height, 0 );
-  scene.add( object );
-
+  // cubes
   var geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
   var material = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
 
@@ -161,6 +174,31 @@ function setupWorld() {
     scene.add( cube );
   }
 
+}
+
+var holoScreenContainer;
+function setupHoloRendering() {
+  var holoResolution = 512;
+  holoTexture = new THREE.WebGLRenderTarget( holoResolution, holoResolution*holoAspect,
+    { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat } );
+
+  var planeGeo = new THREE.PlaneGeometry(1,1*1/holoAspect);
+  var planeMat = new THREE.MeshBasicMaterial({
+    map: holoTexture.texture,
+    transparent: true
+  });
+  holoPlane = new THREE.Mesh(planeGeo, planeMat);
+
+  holoScreenContainer = new THREE.Object3D();
+  holoScreenContainer.add( holoPlane );
+  moveHoloScreen( 0.5 ); // todo: set right distance
+
+  dolly.add( holoScreenContainer );
+}
+
+// todo: update with FOV changes
+function moveHoloScreen(distance) {
+  holoScreenContainer.position.set(0,0, -distance);
 }
 
 function setupHoloWorld() {
@@ -197,7 +235,7 @@ function setupHoloWorld() {
 }
 
 function setupControls() {
-  mouseControls = new THREE.MouseControls(camera);
+  //mouseControls = new THREE.MouseControls(camera);
 
   window.addEventListener('keydown', function(ev){
     var X = 1.1;
@@ -276,9 +314,11 @@ function animate(t) {
 }
 
 function update(dt) {
-  mouseControls.update(dt);
+  //mouseControls.update(dt);
+  controls.update();
+  //holoControls.update();
 
-  updateFOV(dt);
+  //updateFOV(dt);
 }
 
 function updateFOV(dt) {
@@ -293,26 +333,21 @@ function updateFOV(dt) {
 }
 
 function render(dt) {
-  renderer.clear();
+  //renderer.clear();
 
-  //
-  renderer.clearTarget(holoTexture);
-  renderer.render(holoScene, camera, holoTexture);
-
-
-  renderer.render(scene, camera);
-
-  /*if (renderHolograms) {
+  if (renderHolograms) {
     renderHolo();
+  }
 
-    // reset
-    renderer.setViewport( 0, 0, renderWidth, renderHeight );
-    renderer.setScissor( 0, 0, renderWidth, renderHeight );
-    renderer.setScissorTest( false );
-  }*/
+  effect.render(scene, camera);
 }
 
 function renderHolo() {
+  renderer.clearTarget(holoTexture);
+  renderer.render(holoScene, camera, holoTexture); // change to holoCamera, with dolly usage
+
+  return;
+
   var H = renderHeight;
   var W = renderWidth;
 

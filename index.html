@@ -45,10 +45,13 @@
   cursor: pointer;
   background-color: #333;
 }
+
+#enter-btn {
+  margin-top: 12px;
+}
 </style>
 </head>
 <body>
-<canvas id="canvas"></canvas>
 <div id="menu">
   <h1>holo-sim</h1>
 
@@ -60,6 +63,9 @@
 
   <h3>Current FOV</h3>
   <span id="current-fov"></span>
+
+  <div class="btn" id="enter-btn">Enter VR</div>
+
 </div>
 
 <script src="js/libs/three.min.js"></script>
@@ -67,8 +73,8 @@
 <script src="js/libs/MTLLoader.js"></script>
 <script src="js/libs/Tween.js"></script>
 <script src="js/MouseControls.js"></script>
-<script src="js/VREffect.js"></script>
-<script src="js/VRControls.js"></script>
+<script src="js/libs/VREffect.js"></script>
+<script src="js/libs/VRControls.js"></script>
 <script src="js/holosim.js"></script>
 
 </body>
