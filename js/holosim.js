@@ -41,11 +41,27 @@ var holoAspect = holoFOV[0] / holoFOV[1];
 var targetFOV;
 setTargetFOV(holoFOV);
 
-var holoPlane;
-var holoTexture;
+var holoPlaneL, holoPlaneR;
+var holoTextureL, holoTextureR;
+
+var vrHMD;
 
 
-init();
+
+_init();
+
+function _init() {
+  if (!navigator.getVRDisplays) {
+    init();
+    return;
+  }
+  navigator.getVRDisplays().then(function(displays){
+    if (displays.length) {
+      vrHMD = displays[0];
+    }
+    init();
+  });
+}
 
 /*
 TODO:
@@ -64,6 +80,7 @@ function init() {
 
   // vertical FOV, aspect
   camera = new THREE.PerspectiveCamera( FOV, window.innerWidth/window.innerHeight, 0.1, 1000 );
+  camera.layers.enable(1);
 
   holoCamera = new THREE.PerspectiveCamera( holoFOV[1], holoAspect, 0.1, 1000 );
 
@@ -79,8 +96,8 @@ function init() {
     antialias: true
   });
   renderer.autoClear = false;
-  var container = document.body;
-  container.appendChild( renderer.domElement );
+
+  document.body.appendChild( renderer.domElement );
 
   renderWidth = window.innerWidth;
   renderHeight = window.innerHeight;
@@ -179,21 +196,57 @@ function setupWorld() {
 var holoScreenContainer;
 function setupHoloRendering() {
   var holoResolution = 512;
-  holoTexture = new THREE.WebGLRenderTarget( holoResolution, holoResolution*holoAspect,
-    { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat } );
 
-  var planeGeo = new THREE.PlaneGeometry(1,1*1/holoAspect);
-  var planeMat = new THREE.MeshBasicMaterial({
-    map: holoTexture.texture,
+  holoTextureL = new THREE.WebGLRenderTarget( holoResolution, holoResolution*holoAspect,
+    { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat } );
+  holoTextureR = holoTextureL.clone();
+
+  var planeGeoL = new THREE.PlaneGeometry(1,1*1/holoAspect);
+  var planeMatL = new THREE.MeshBasicMaterial({
+    map: holoTextureL.texture,
     transparent: true
   });
-  holoPlane = new THREE.Mesh(planeGeo, planeMat);
+  holoPlaneL = new THREE.Mesh(planeGeoL, planeMatL);
+
+  var planeGeoR = planeGeoL.clone();
+  var planeMatR = new THREE.MeshBasicMaterial({
+    map: holoTextureR.texture,
+    transparent: true
+  });
+  holoPlaneR = new THREE.Mesh(planeGeoR, planeMatR);
 
   holoScreenContainer = new THREE.Object3D();
-  holoScreenContainer.add( holoPlane );
-  moveHoloScreen( 0.5 ); // todo: set right distance
-
   dolly.add( holoScreenContainer );
+
+  if (vrHMD) {
+    var eyeParamsL = vrHMD.getEyeParameters( 'left' );
+    var eyeParamsR = vrHMD.getEyeParameters( 'right' );
+
+    var eyeTranslationL = new THREE.Vector3();
+    var eyeTranslationR = new THREE.Vector3();
+
+    eyeTranslationL.fromArray( eyeParamsL.offset );
+    eyeTranslationR.fromArray( eyeParamsR.offset );
+
+    holoPlaneL.translateOnAxis(eyeTranslationR, 1);
+    holoPlaneR.translateOnAxis(eyeTranslationL, 1);
+  }
+
+  holoPlaneL.layers.disable(0);
+  //holoPlaneL.layers.disable(1);
+  //holoPlaneL.layers.disable(2);
+  holoPlaneR.layers.disable(0);
+  //holoPlaneR.layers.disable(1);
+  //holoPlaneR.layers.disable(2);
+
+  holoPlaneL.layers.enable(1);
+  holoPlaneR.layers.enable(2);
+
+  holoScreenContainer.add( holoPlaneL );
+  holoScreenContainer.add( holoPlaneR );
+
+
+  moveHoloScreen( 0.5 ); // todo: set right distance
 }
 
 // todo: update with FOV changes
@@ -259,6 +312,10 @@ function setupControls() {
       case 82: /*R*/
 
         break;
+      case 84:/*T*/
+        renderHolograms = !renderHolograms;
+        holoScreenContainer.visible = renderHolograms;
+        break;
     }
   }, false);
 }
@@ -268,6 +325,7 @@ function setupUI() {
   var fullBtn = document.getElementById('full-btn');
   var incBtn = document.getElementById('inc-btn');
   var decBtn = document.getElementById('dec-btn');
+  var toggleBtn = document.getElementById('toggle-btn');
 
   holoBtn.addEventListener('click', function(){
     setTargetFOV(hololensFOV);
@@ -281,6 +339,10 @@ function setupUI() {
   }, false);
   decBtn.addEventListener('click', function(){
     setTargetFOV(scaleFOV(targetFOV, -1));
+  }, false);
+  toggleBtn.addEventListener('click', function(){
+    renderHolograms = !renderHolograms;
+    holoScreenContainer.visible = renderHolograms;
   }, false);
 
 }
@@ -343,29 +405,10 @@ function render(dt) {
 }
 
 function renderHolo() {
-  renderer.clearTarget(holoTexture);
-  renderer.render(holoScene, camera, holoTexture); // change to holoCamera, with dolly usage
+  renderer.clearTarget(holoTextureL);
+  renderer.render(holoScene, camera, holoTextureL); // change to holoCamera, with dolly usage
 
-  return;
-
-  var H = renderHeight;
-  var W = renderWidth;
-
-  var hFOV = FOV * renderWidth/renderHeight;
-
-  var x,y,w,h;
-  w = holoFOV[0] / hFOV;
-  h = holoFOV[1] /  FOV;
-  x = 0.5 - w/2;
-  y = 0.5 - h/2;
-
-  crop( W*x, H*y, W*w, H*h );
-
-  renderer.render( holoScene, camera );
+  renderer.clearTarget(holoTextureR);
+  renderer.render(holoScene, camera, holoTextureR);
 }
 
-function crop( x, y, w, h ) {
-  //renderer.setViewport( x, y, w, h );
-  renderer.setScissor( x, y, w, h );
-  renderer.setScissorTest( true );
-}
